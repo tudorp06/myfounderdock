@@ -1,0 +1,30 @@
+node_modules/
+dist/
+src-tauri/target/
+.env*
+*.log
+
+.env
+.env.*
+!.env.example
+
+# Local builds, hosting metadata and private release material
+output/
+website/.openai/
+website-site.tar.gz
+*.p12
+*.pfx
+*.p8
+*.pem
+*.key
+connections.json
+.DS_Store
+
+# Private design/deployment workspace and unrelated reference images
+.impeccable/
+/PRODUCT.md
+/website/
+/*.png
+/public/logos/image.png
+/src-tauri/gen/
+.idea/

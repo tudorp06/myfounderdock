@@ -1,0 +1,56 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "myfounderdock",
+  "version": "0.1.0",
+  "identifier": "com.tudor.founderdock",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://127.0.0.1:1432",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "myfounderdock",
+        "width": 46,
+        "height": 380,
+        "decorations": false,
+        "transparent": true,
+        "shadow": false,
+        "alwaysOnTop": true,
+        "resizable": false,
+        "skipTaskbar": false,
+        "visible": true
+      },
+      {
+        "label": "settings",
+        "title": "myfounderdock Settings",
+        "url": "settings.html",
+        "width": 760,
+        "height": 540,
+        "minWidth": 620,
+        "minHeight": 460,
+        "center": true,
+        "decorations": false,
+        "transparent": false,
+        "shadow": true,
+        "resizable": true,
+        "visible": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://avatars.githubusercontent.com https://d21oz30g4w22sz.cloudfront.net https://cdn.trustmrr.com https://trustmrr.com https://pbs.twimg.com https://files.stripe.com https://img.logo.dev https://www.google.com https://*.gstatic.com; connect-src ipc: http://ipc.localhost https://api.github.com https://github-contributions-api.jogruber.de"
+    }
+  },
+  "bundle": {
+    "active": false,
+    "icon": [
+      "icons/icon.ico",
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png"
+    ]
+  }
+}
