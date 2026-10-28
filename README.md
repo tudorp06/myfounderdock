@@ -1,6 +1,29 @@
-# myfounderdock — personal platform dock
+<p align="center">
+  <img src="public/brand/app-icon.png" width="112" height="112" alt="myfounderdock app logo">
+</p>
+<h1 align="center">myfounderdock</h1>
+<p align="center"><strong>The open-source dock for founder stats.</strong></p>
 
-An open-source Windows dock for configurable founder statistics. Each user connects their own accounts in Settings.
+GitHub activity, AI usage, website analytics and product revenue in a compact desktop dock. Open a panel when you want a number, close it and get back to work. Built with Tauri, Rust and TypeScript; every user connects their own accounts.
+
+## What you can keep in your dock
+
+- **GitHub:** your contribution heatmap and three most recently pushed repositories, with links to open them.
+- **AI usage:** Codex, Claude and Cursor quota windows and reset times from your installed account. Local CLI detection and explicit sign-in mean no executable path is required for standard installs. Availability depends on your account and provider.
+- **Vercel:** choose a project and check its visitors and page views.
+- **Polar:** recent paid orders across your products, with customer names, amounts and a product filter.
+- **TrustMRR:** connect a startup by slug to see its logo, last 30 days of revenue, monthly recurring revenue and all-time revenue. Customer and subscription counts appear when the API supplies them.
+- **Your space:** add your own photo, name and a short note.
+
+Drag it anywhere, snap it to an edge, or make it horizontal. Choose a floating pill or an edge dock, switch between solid and glass panels, and hide the platforms you do not use. Only the selected panel opens, keeping the rest of your desktop clear.
+
+## Your accounts, your setup
+
+A fresh installation starts with a blank profile and disconnected providers. Add your GitHub username, provider tokens or local CLI sign-in through Settings. API tokens stay encrypted on your Windows account; credentials are never bundled with the source. No shared backend account is required.
+
+Subscription dates are shown when a provider supplies them. Optional dates entered in Settings are labeled accordingly; usage panels do not display account emails. Stripe currently offers token configuration only, not statistics.
+
+**Current platform: Windows.** macOS support and packaged releases are still being prepared. You can build and run the Windows source today.
 
 ## Run
 
@@ -26,7 +49,6 @@ Hover or click a provider to open its panel. Close or Escape collapses it. Panel
 | `src/profile.ts` | Local personal profile name, photo and note; cross-window synchronization |
 | `src-tauri/src/main.rs` | Native window positioning, expansion, settings commands and URL opener |
 | `DESIGN.md` | Current visual tokens and design rules |
-| `.impeccable/design.json` | Design preview snippets, motion and elevation extensions |
 
 ## Add or change a logo
 
