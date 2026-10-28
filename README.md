@@ -86,3 +86,7 @@ The approved Kitbar-inspired direction uses a black rail in two persisted shapes
 Tauri uses Windows WebView2. The app remains visible in the taskbar so it can be recovered or closed. Tray, autostart and global shortcuts are not implemented.
 
 Cursor cube source: https://cursor.com/brand (official brand archive, CUBE_2D_DARK.svg).
+
+## License
+
+Project source is licensed under the [MIT License](LICENSE). Third-party assets retain their respective licenses and trademark rights.

@@ -3,6 +3,7 @@ name = "myfounderdock"
 version = "0.1.0"
 description = "A personal founder dock for Windows"
 edition = "2021"
+license = "MIT"
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
