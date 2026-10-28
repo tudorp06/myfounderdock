@@ -4,6 +4,7 @@ import { invoke } from '@tauri-apps/api/core';
 interface UsageWindow { id:string; label:string; usedPercent:number; resetsAt:string|null; windowDurationMins:number|null }
 interface AgentUsage { provider:string;plan:string|null;account:string|null;source:string;windows:UsageWindow[];tokens:{lifetimeTokens:number|null;peakDailyTokens:number|null;currentStreakDays:number|null}|null;periodStart:string|null;periodEnd:string|null;subscribedAt:string|null;lastChargeAt:string|null;renewsAt:string|null;billingSource?:string;updatedAt:number }
 const pending=new Map<string,Promise<AgentUsage>>();
+const snapshots=new Map<string,{data:AgentUsage;at:number}>();
 const names:Record<string,string>={codex:'Codex',claude:'Claude',cursor:'Cursor'};
 function text(tag:string,value:string,className=''){const node=document.createElement(tag);node.textContent=value;node.className=className;return node;}
 function when(value:string|null){
@@ -29,13 +30,24 @@ function resetLabel(value:string|null){
     return 'Resets '+new Intl.DateTimeFormat(undefined,{month:'short',day:'numeric'}).format(date);
 }
 function planLabel(value:string|null){if(!value)return 'Account';return value.replace(/[_-]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase());}
-async function load(provider:string,refresh:boolean){
+async function load(provider:string,refresh:boolean,onFresh?:(data:AgentUsage)=>void){
     const config=await getConnection(provider);
     if(!config.enabled)throw 'Choose your account source in Settings to connect this provider.';
     const key=provider+':'+config.revision;
-    let request=pending.get(key);
-    if(!request){request=invoke<AgentUsage>('load_agent_usage',{provider,refresh}).finally(()=>pending.delete(key));pending.set(key,request);}
-    return request;
+    const cached=snapshots.get(key);
+    function requestFresh(){
+        let request=pending.get(key);
+        if(!request){request=invoke<AgentUsage>('load_agent_usage',{provider,refresh}).then(data=>{
+            if(data.provider!==provider)throw new Error('The provider returned an unexpected usage response.');
+            snapshots.set(key,{data,at:Date.now()});return data;
+        }).finally(()=>pending.delete(key));pending.set(key,request);}
+        return request;
+    }
+    if(!refresh&&cached){
+        if(Date.now()-cached.at>60000)void requestFresh().then(data=>onFresh?.(data)).catch(()=>{});
+        return cached.data;
+    }
+    return requestFresh();
 }
 export async function mountAgent(root:HTMLElement,provider:string):Promise<void>{
     const view=root.querySelector<HTMLElement>('.agent-view')!;
@@ -96,7 +108,7 @@ export async function mountAgent(root:HTMLElement,provider:string):Promise<void>
     }
     async function refreshData(force=false){
         const current=++revision;refresh.disabled=true;connect.disabled=true;status.textContent='';view.setAttribute('aria-busy','true');
-        try{if(!('__TAURI_INTERNALS__' in window))throw new Error('Open the desktop app to connect your account.');const data=await load(provider,force);if(view.isConnected&&current===revision)render(data);}
+        try{if(!('__TAURI_INTERNALS__' in window))throw new Error('Open the desktop app to connect your account.');const data=await load(provider,force,fresh=>{if(view.isConnected&&current===revision)render(fresh);});if(view.isConnected&&current===revision)render(data);}
         catch(error){if(view.isConnected&&current===revision){status.textContent=typeof error==='string'?error:error instanceof Error?error.message:'Could not load account usage.';connect.textContent='Account settings';connect.hidden=false;}}
         finally{if(view.isConnected&&current===revision){refresh.disabled=false;connect.disabled=false;view.removeAttribute('aria-busy');}}
     }

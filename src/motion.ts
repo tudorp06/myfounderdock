@@ -9,15 +9,8 @@ export function animateSections(root:HTMLElement){
  });
 }
 
-// One continuous handoff for cached responses and network responses alike.
-export function transitionPanel(incoming:HTMLElement,outgoing?:HTMLElement){
- if(!motionEnabled()||typeof incoming.animate!=='function'){outgoing?.remove();return;}
- incoming.animate([
-  {opacity:0,transform:'translateY(12px)'},
-  {opacity:1,transform:'translateY(0)'}
- ],{duration:620,delay:outgoing?70:0,easing:panelEase,fill:'backwards'});
- if(outgoing){
-  const exit=outgoing.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(-8px)'}],{duration:280,easing:'cubic-bezier(.4,0,1,1)',fill:'forwards'});
-  void exit.finished.catch(()=>{}).finally(()=>outgoing.remove());
- }
+// The old panel is already closed; reveal only the current request's content.
+export function transitionPanel(incoming:HTMLElement){
+ if(!motionEnabled()||typeof incoming.animate!=='function')return;
+ incoming.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'translateY(0)'}],{duration:560,easing:panelEase,fill:'backwards'});
 }

@@ -77,7 +77,7 @@ const positioning = createDockPositioning(dock, {
 
   beforeDrag: () => {
 
-    clearTimeout(closeTimer);clearTimeout(hoverTimer);transition++;selected=null;pendingPanel=null;switchAnimation?.cancel();heightAnimation?.cancel();detail.style.height='';contentObserver.disconnect();
+    detail.querySelector('.panel-content')?.dispatchEvent(new Event('panel-unmount'));clearTimeout(closeTimer);clearTimeout(hoverTimer);transition++;selected=null;pendingPanel=null;switchAnimation?.cancel();heightAnimation?.cancel();detail.style.height='';contentObserver.disconnect();
 
     dock.classList.remove('expanded');detail.hidden=true;
 
@@ -222,72 +222,52 @@ const contentObserver = new ResizeObserver(()=>{
 async function showPanel(panel: Panel, force = false) {
   clearTimeout(closeTimer);clearTimeout(hoverTimer);
   if(positioning.isDragging())return;
-  if(selected===panel && !detail.hidden && !force){if(pendingPanel&&pendingPanel!==panel){transition++;pendingPanel=null;switchAnimation?.cancel();}dock.classList.add('expanded');return;}
   if(pendingPanel===panel&&!force)return;
-  pendingPanel=panel;
+  if(selected===panel&&!detail.hidden&&!pendingPanel&&!force)return;
   const current=++transition;
-  switchAnimation?.cancel();
-  const previous=selected;
-  const wasOpen=previous!==null && !detail.hidden;
-  const oldContent=detail.querySelector<HTMLElement>('.panel-content');
-  const oldHeight=detail.getBoundingClientRect().height;
-  const outgoingSource=detail.querySelector<HTMLElement>('.panel-outgoing')??oldContent;
-  const outgoing=wasOpen&&outgoingSource?outgoingSource.cloneNode(true) as HTMLElement:undefined;
-  const oldPadding=getComputedStyle(detail).padding;
-  if(outgoing){
-    outgoing.className='panel-content panel-outgoing';outgoing.inert=true;outgoing.setAttribute('aria-hidden','true');
-    Object.assign(outgoing.style,{position:'absolute',inset:'0',padding:oldPadding,opacity:'1',visibility:'visible',pointerEvents:'none',overflow:'hidden'});
-    outgoing.querySelectorAll('[id]').forEach(node=>node.removeAttribute('id'));
-  }
-  // Keep native bounds unchanged between providers; only first open needs expansion.
-  if(!wasOpen){try{await resizeNative(true);}catch(error){console.error('Unable to expand dock',error);if(current===transition)pendingPanel=null;return;}}
-  if(current!==transition)return;
-  selected=panel;pendingPanel=null;
+  pendingPanel=panel;selected=null;
   contentObserver.disconnect();
-  heightAnimation?.cancel();heightAnimation=undefined;detail.style.overflow='';
-  detail.hidden=false;
-  detail.dataset.view=panel;
+  detail.querySelector('.panel-content')?.dispatchEvent(new Event('panel-unmount'));
   detail.dispatchEvent(new Event('panel-unmount'));
-  detail.innerHTML=`<div class="panel-content">${panelContent(panel)}</div>`;
-  if(panel==='profile'){applyProfile();detail.querySelector('.edit-profile')?.addEventListener('click',()=>void openSettings('profile'));}
-  const content=detail.querySelector<HTMLElement>('.panel-content')!;
-  content.classList.add('panel-preparing');content.style.visibility='hidden';
-  if(outgoing)detail.append(outgoing);
-  const asyncPanel=['github','polar','vercel','trustmrr','codex','claude','cursor'].includes(panel);
-  let data:HTMLElement|undefined;
-  let loading:HTMLElement|undefined;
-  let loadingTimer:ReturnType<typeof setTimeout>|undefined;
-  if(asyncPanel){
-    data=document.createElement('div');data.className='panel-data';data.hidden=true;
-    for(const child of Array.from(content.children)){if(child.tagName!=='HEADER')data.append(child);}
-    content.append(data);
-    detail.style.height=`${wasOpen?oldHeight:112}px`;
-    measuredHeight=wasOpen?oldHeight:112;
-    loading=document.createElement('p');loading.className='panel-loading';loading.textContent='Loading...';loading.setAttribute('role','status');loading.hidden=true;content.append(loading);
-    loadingTimer=setTimeout(()=>{if(current===transition&&loading)loading.hidden=false;},250);
-  }else{
-    detail.style.height='';const newHeight=detail.getBoundingClientRect().height;measuredHeight=newHeight;
-    if(wasOpen)easePanelHeight(oldHeight,newHeight);
-    content.classList.remove('panel-preparing');content.style.visibility='';transitionPanel(content,outgoing);contentObserver.observe(content);
-  }
-  document.querySelectorAll<HTMLButtonElement>('[data-panel]').forEach(button=>button.setAttribute('aria-expanded',String(button.dataset.panel===panel)));
-  requestAnimationFrame(()=>{if(current===transition)dock.classList.add('expanded');});
-  const ready=panel==='github'?mountConfiguredGitHub(detail):panel==='polar'?mountPolar(detail):panel==='vercel'?mountVercel(detail):panel==='trustmrr'?mountTrustMRR(detail):agents.some(agent=>agent.id===panel)?mountAgent(detail,panel):null;
-  if(ready)void ready.catch(error=>{console.error('Could not load panel',error);}).finally(()=>{
-    clearTimeout(loadingTimer);
-    if(current!==transition||selected!==panel||!data||!data.isConnected)return;
-    const from=detail.getBoundingClientRect().height;
-    loading?.remove();data.hidden=false;
-    detail.style.height='';
-    const target=detail.getBoundingClientRect().height;
-    easePanelHeight(from,target);
-    content.classList.remove('panel-preparing');content.style.visibility='';
-    transitionPanel(content,outgoing);contentObserver.observe(content);
+  heightAnimation?.cancel();heightAnimation=undefined;detail.style.overflow='';
+  dock.classList.remove('expanded');
+  document.querySelectorAll<HTMLButtonElement>('[data-panel]').forEach(button=>{
+    button.setAttribute('aria-expanded','false');
+    if(button.dataset.panel===panel)button.setAttribute('aria-busy','true');else button.removeAttribute('aria-busy');
   });
-  detail.querySelector('.close')?.addEventListener('click',()=>void hidePanel(true));
+  if(!detail.hidden)await new Promise(resolve=>setTimeout(resolve,reducedMotion()?0:240));
+  if(current!==transition)return;
+  detail.hidden=true;detail.replaceChildren();detail.style.height='';
+  try{await resizeNative(true);}catch(error){console.error('Unable to expand dock',error);if(current===transition)pendingPanel=null;return;}
+  if(current!==transition)return;
+  detail.dataset.view=panel;
+  const content=document.createElement('div');content.className='panel-content panel-preparing';content.innerHTML=panelContent(panel);detail.append(content);
+  if(panel==='profile'){applyProfile();content.querySelector('.edit-profile')?.addEventListener('click',()=>void openSettings('profile'));}
+  content.querySelector('.close')?.addEventListener('click',()=>void hidePanel(true));
+  // Mount into this request's own subtree. A late response cannot query a newer panel.
+  try{
+    if(panel==='github')await mountConfiguredGitHub(content);
+    else if(panel==='polar')await mountPolar(content);
+    else if(panel==='vercel')await mountVercel(content);
+    else if(panel==='trustmrr')await mountTrustMRR(content);
+    else if(agents.some(agent=>agent.id===panel))await mountAgent(content,panel);
+  }catch(error){console.error('Could not load panel',error);}
+  if(current!==transition||pendingPanel!==panel||!content.isConnected)return;
+  selected=panel;pendingPanel=null;content.classList.remove('panel-preparing');
+  detail.hidden=false;measuredHeight=detail.offsetHeight;
+  document.querySelectorAll<HTMLButtonElement>('[data-panel]').forEach(button=>{
+    button.setAttribute('aria-expanded',String(button.dataset.panel===panel));button.removeAttribute('aria-busy');
+  });
+  // Establish the closed CSS state before opening, even for an immediate cache hit.
+  void detail.offsetHeight;
+  requestAnimationFrame(()=>{
+    if(current!==transition||selected!==panel)return;
+    dock.classList.add('expanded');transitionPanel(content);contentObserver.observe(content);
+  });
 }
 async function hidePanel(restoreFocus = false) {
   pendingPanel=null;
+  detail.querySelector('.panel-content')?.dispatchEvent(new Event('panel-unmount'));
   detail.dispatchEvent(new Event('panel-unmount'));
 
   clearTimeout(hoverTimer);
@@ -303,7 +283,7 @@ async function hidePanel(restoreFocus = false) {
 
   dock.classList.remove('expanded');
 
-  document.querySelectorAll('[data-panel]').forEach(button => button.setAttribute('aria-expanded', 'false'));
+  document.querySelectorAll('[data-panel]').forEach(button => {button.setAttribute('aria-expanded', 'false');button.removeAttribute('aria-busy');});
 
   if (restoreFocus && previous) document.querySelector<HTMLButtonElement>(`[data-panel="${previous}"]`)?.focus();
 
@@ -348,7 +328,7 @@ dock.addEventListener('focusout', () => { setTimeout(() => { if (!positioning.is
 
 document.addEventListener('keydown', event => { if (event.key === 'Escape') void hidePanel(true); });
 
-document.addEventListener('pointerdown', event => { if (!dock.querySelector('.rail')!.contains(event.target as Node) && !detail.contains(event.target as Node) && selected) void hidePanel(); });
+document.addEventListener('pointerdown', event => { if (!dock.querySelector('.rail')!.contains(event.target as Node) && !detail.contains(event.target as Node) && (selected||pendingPanel)) void hidePanel(); });
 
 
 if(native)void import('@tauri-apps/api/event').then(({listen})=>listen('vercel-changed',()=>{if(selected==='vercel')detail.querySelector<HTMLButtonElement>('.vercel-refresh')?.click();}));
