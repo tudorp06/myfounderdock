@@ -119,7 +119,7 @@ function panelContent(panel: Panel) {
 
     <section class="repos-section" aria-label="Recent repositories"></section>
 
-    <footer class="connection github-source">Public activity · <a href="https://github.com/grubersjoe/github-contributions-api" target="_blank" rel="noopener noreferrer">Calendar source</a></footer>`;
+    `;
 
   if (panel === 'trustmrr') return `<header class="panel-header trustmrr-header"><div class="vercel-identity"><img src="/logos/trustmrr.png" alt="" width="20" height="20"><h1>TrustMRR</h1></div><div class="polar-actions"><button class="trustmrr-refresh icon-button" aria-label="Refresh revenue">${refreshIcon}</button><button class="icon-button close" aria-label="Close panel">${closeIcon}</button></div></header><section class="trustmrr-view" aria-label="Startup revenue"><div class="trustmrr-startup"><img class="trustmrr-startup-logo" alt="" width="28" height="28" hidden><h2 data-trustmrr="name">Loading startup...</h2></div><div class="trustmrr-hero"><span>Revenue · last 30 days</span><strong data-trustmrr="last30Days">&mdash;</strong></div><dl class="trustmrr-secondary"><div><dt>Monthly recurring</dt><dd data-trustmrr="mrr">&mdash;</dd></div><div><dt>All-time revenue</dt><dd data-trustmrr="total">&mdash;</dd></div></dl><dl class="trustmrr-extra" hidden></dl><p class="trustmrr-message" role="status"></p></section>`;
 
