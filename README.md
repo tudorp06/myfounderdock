@@ -23,13 +23,19 @@ A fresh installation starts with a blank profile and disconnected providers. Add
 
 Subscription dates are shown when a provider supplies them. Optional dates entered in Settings are labeled accordingly; usage panels do not display account emails. Stripe currently offers token configuration only, not statistics.
 
-**Current platform: Windows.** macOS support and packaged releases are still being prepared. You can build and run the Windows source today.
+## Download for Windows
+
+[**Download myfounderdock.exe (Windows x64)**](https://github.com/tudorp06/myfounderdock/releases/download/v0.1.0/myfounderdock.exe) · [Release notes](https://github.com/tudorp06/myfounderdock/releases/tag/v0.1.0)
+
+This is an early Windows preview. Download the EXE, run it, then open Settings to connect your own accounts. No Node.js or Rust installation is needed. Microsoft Edge WebView2 Runtime is required (normally present on Windows 10/11). The executable is unsigned, so Windows may show a publisher warning.
+
+**Current platform: Windows x64.** macOS releases are not available yet.
 
 ## Run
 
 `npm install`, then `npm run tauri dev` for the transparent desktop dock.
 `npm run dev` serves the browser preview at http://127.0.0.1:1432; `/settings.html` previews settings.
-`npm run tauri build -- --no-bundle` builds the Windows executable. The current source redesign is not yet a refreshed packaged release.
+`npm run tauri build -- --no-bundle` builds the Windows executable. The Windows preview is also available from GitHub Releases.
 
 Hover or click a provider to open its panel. Close or Escape collapses it. Panels close after pointer leave unless kept open in settings; keyboard focus inside keeps them open. Tab to a provider and press Enter to open it. Drag the grip or empty rail gaps to move across displays. Drop near an edge to snap; top/bottom reflow horizontally, left/right vertically. Interior drops stay free-floating. Arrow keys on the grip move it (Shift moves farther). The rail grows or shrinks with visible providers and is 42px thick (46px in edge mode). Native bounds wrap only the rail and open panel; the bottom pill keeps clearance above the taskbar. Position persists separately for desktop and browser preview. Settings opens in a separate 760×540px window.
 
